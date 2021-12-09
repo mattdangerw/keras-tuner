@@ -32,6 +32,15 @@ from keras_tuner.engine import tuner_utils
 MAX_FAIL_STREAK = 5
 
 
+class SaveBestEpoch(keras.callbacks.Callback):
+    def __init__(self, objective):
+        super().__init__()
+        self.objective = objective
+        self.best_value
+
+    def on_epoch_end(self, epoch, logs=None):
+        pass
+
 class Tuner(base_tuner.BaseTuner):
     """Tuner class for Keras models.
 
@@ -116,13 +125,6 @@ class Tuner(base_tuner.BaseTuner):
             logger=logger,
             overwrite=overwrite,
         )
-
-        if isinstance(oracle.objective, list) and len(oracle.objective) > 1:
-            raise ValueError(
-                "Multi-objective is not supported, found: {}".format(
-                    oracle.objective
-                )
-            )
 
         self.max_model_size = max_model_size
         self.optimizer = optimizer
@@ -282,13 +284,8 @@ class Tuner(base_tuner.BaseTuner):
             of results of any of the types above. The final objective value is
             the average of the results in the list.
         """
-        model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=self._get_checkpoint_fname(trial.trial_id, self._reported_step),
-            monitor=self.oracle.objective.name,
-            mode=self.oracle.objective.direction,
-            save_best_only=True,
-            save_weights_only=True,
-        )
+        # Need change, have a custom call back to save according to multiobjective.
+        model_checkpoint = SaveBestEpoch(self.oracle.objective)
         original_callbacks = kwargs.pop("callbacks", [])
 
         # Run the training process multiple times.

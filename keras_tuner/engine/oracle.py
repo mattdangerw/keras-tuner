@@ -36,8 +36,12 @@ class Oracle(stateful.Stateful):
     """Implements a hyperparameter optimization algorithm.
 
     Args:
-        objective: A string or `keras_tuner.Objective` instance. If a string,
+        objective: A string, `keras_tuner.Objective` instance, or a list of `keras_tuner.Objective`.
+        If a string,
             the direction of the optimization (min or max) will be inferred.
+            If a list of `keras_tuner.Objective`, we will minimize the sum of all the objectives to minimize minus the sum of all the objectives to maximize.
+
+
             It is optional when `Tuner.run_trial()` or `HyperModel.fit()`
             returns a single float as the objective to minimize.
         max_trials: Integer, the total number of trials (model configurations)
@@ -157,6 +161,7 @@ class Oracle(stateful.Stateful):
         Args:
             trial: A completed `Trial` object.
         """
+        # Need change
         # Assumes single objective, subclasses can override.
         trial.score = trial.metrics.get_best_value(self.objective.name)
         trial.best_step = trial.metrics.get_best_step(self.objective.name)
@@ -300,6 +305,7 @@ class Oracle(stateful.Stateful):
         sorted_trials = sorted(
             trials,
             key=lambda trial: trial.score,
+            # Need change
             # Assumes single objective, subclasses can override.
             reverse=self.objective.direction == "max",
         )
@@ -450,6 +456,7 @@ def _format_objective(objective):
     if objective is None:
         return Objective("default_objective", "min")
     if isinstance(objective, list):
+        # Need change, create a new MultiObjective class, so that the oracle don't need to know if it is multi-objective or not, just treat all objective equally.
         return [_format_objective(obj) for obj in objective]
     if isinstance(objective, Objective):
         return objective

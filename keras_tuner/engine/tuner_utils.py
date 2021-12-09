@@ -192,6 +192,7 @@ def average_metrics_dicts(metrics_dicts):
 
 def convert_to_metrics_dict(results, objective):
     """Convert any supported results type to a metrics dictionary."""
+    # Add the case of multi objective. the return dict should contain 'multi_objective' as the key.
     # Single value.
     if isinstance(results, (int, float)):
         return {objective.name: results}
